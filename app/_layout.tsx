@@ -50,6 +50,20 @@ export default function RootLayout() {
             headerShown: true,
           }}
         />
+        <Stack.Screen
+          name="optimize"
+          options={{
+            title: "AI Optimization",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="info"
+          options={{
+            title: "About",
+            headerShown: true,
+          }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

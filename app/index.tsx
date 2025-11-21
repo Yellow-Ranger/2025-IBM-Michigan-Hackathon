@@ -43,6 +43,21 @@ export default function Home() {
                   styles.iconButton,
                   pressed && styles.iconButtonPressed,
                 ]}
+                onPress={() => router.push("/optimize" as any)}
+                accessibilityLabel="AI Optimize"
+              >
+                <MaterialCommunityIcons
+                  name="robot-outline"
+                  size={18}
+                  color={PRIMARY}
+                />
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.iconButton,
+                  pressed && styles.iconButtonPressed,
+                ]}
                 onPress={() => router.push("/info")}
                 accessibilityLabel="Info"
               >
