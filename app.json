@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Project Lyoko",
+    "slug": "project-lyoko",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "project-lyoko",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.projectlyoko.app",
+      "deploymentTarget": "17.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs camera access to scan rooms and capture photos for 3D reconstruction.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save scanned room models.",
+        "NSPhotoLibraryAddUsageDescription": "This app needs access to save exported STL files to your photo library.",
+        "NSMicrophoneUsageDescription": "Microphone access is not used by this app.",
+        "NSLocationWhenInUseUsageDescription": "Location access is used for magnetometer (compass) readings to guide room scanning.",
+        "NSMotionUsageDescription": "This app needs motion sensor access to track device orientation during room scanning.",
+        "UIRequiredDeviceCapabilities": [
+          "arkit",
+          "arkit"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACTIVITY_RECOGNITION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.projectlyoko.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan rooms."
+        }
+      ],
+      "expo-roomplan"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "906f612c-4c33-41cf-ab90-5b772b2e1968"
+      }
+    }
+  }
+}
