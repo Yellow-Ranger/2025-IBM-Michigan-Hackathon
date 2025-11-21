@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "workflow": "generic",
       "developmentClient": true,
       "distribution": "internal"
     },
