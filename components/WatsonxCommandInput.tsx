@@ -7,6 +7,8 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -85,78 +87,87 @@ export function WatsonxCommandInput({ onSubmit, loading, status }: Props) {
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Watsonx Command</Text>
-        {status ? <Text style={styles.status}>{status}</Text> : null}
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 84 : 0}
+      style={styles.keyboardAvoider}
+    >
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Watsonx Command</Text>
+          {status ? <Text style={styles.status}>{status}</Text> : null}
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Tell Watsonx how to adjust the layout..."
-        placeholderTextColor="#9fb3c8"
-        value={value}
-        onChangeText={setValue}
-        multiline
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Tell Watsonx how to adjust the layout..."
+          placeholderTextColor="#9fb3c8"
+          value={value}
+          onChangeText={setValue}
+          multiline
+        />
 
-      <View style={styles.actions}>
-        {recognitionAvailable && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.voiceButton,
-              pressed && styles.voiceButtonPressed,
-              isListening && styles.voiceButtonActive,
-            ]}
-            onPress={startVoiceInput}
-            disabled={loading || isListening}
-          >
-            <MaterialCommunityIcons
-              name={isListening ? "microphone" : "microphone-outline"}
-              size={20}
-              color={isListening ? "#ef4444" : "#00d4ff"}
-            />
-          </Pressable>
-        )}
-        <Pressable
-          style={({ pressed }) => [
-            styles.sendButton,
-            pressed && styles.sendButtonPressed,
-          ]}
-          onPress={handleSend}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#0b0f24" />
-          ) : (
-            <Text style={styles.sendLabel}>Send to Watsonx</Text>
+        <View style={styles.actions}>
+          {recognitionAvailable && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.voiceButton,
+                pressed && styles.voiceButtonPressed,
+                isListening && styles.voiceButtonActive,
+              ]}
+              onPress={startVoiceInput}
+              disabled={loading || isListening}
+            >
+              <MaterialCommunityIcons
+                name={isListening ? "microphone" : "microphone-outline"}
+                size={20}
+                color={isListening ? "#ef4444" : "#00d4ff"}
+              />
+            </Pressable>
           )}
-        </Pressable>
-      </View>
-
-      <View style={styles.suggestions}>
-        {SUGGESTIONS.map((suggestion) => (
           <Pressable
-            key={suggestion}
             style={({ pressed }) => [
-              styles.suggestionChip,
-              pressed && styles.suggestionChipPressed,
+              styles.sendButton,
+              pressed && styles.sendButtonPressed,
             ]}
-            onPress={() => {
-              setValue(suggestion);
-              onSubmit(suggestion);
-            }}
+            onPress={handleSend}
             disabled={loading}
           >
-            <Text style={styles.suggestionText}>{suggestion}</Text>
+            {loading ? (
+              <ActivityIndicator color="#0b0f24" />
+            ) : (
+              <Text style={styles.sendLabel}>Send to Watsonx</Text>
+            )}
           </Pressable>
-        ))}
+        </View>
+
+        <View style={styles.suggestions}>
+          {SUGGESTIONS.map((suggestion) => (
+            <Pressable
+              key={suggestion}
+              style={({ pressed }) => [
+                styles.suggestionChip,
+                pressed && styles.suggestionChipPressed,
+              ]}
+              onPress={() => {
+                setValue(suggestion);
+                onSubmit(suggestion);
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.suggestionText}>{suggestion}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoider: {
+    width: "100%",
+  },
   card: {
     backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 20,
@@ -169,6 +180,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    flexWrap: "wrap",
+    gap: 6,
   },
   title: {
     fontSize: 18,
@@ -179,6 +192,8 @@ const styles = StyleSheet.create({
   status: {
     fontSize: 12,
     color: "#9fb3c8",
+    flexShrink: 1,
+    textAlign: "right",
   },
   input: {
     borderWidth: 1,

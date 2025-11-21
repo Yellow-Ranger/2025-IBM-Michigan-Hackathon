@@ -44,6 +44,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="viewer"
+          options={{
+            title: "3D Viewer",
+            headerShown: true,
+          }}
+        />
+        <Stack.Screen
           name="layout"
           options={{
             title: "Layout Studio",

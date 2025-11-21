@@ -8,9 +8,12 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Platform,
+  NativeModules,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
+import { Asset } from "expo-asset";
 import { useNativeOrientation } from "@/hooks/useNativeOrientation";
 import { useCaptureStore } from "@/utils/captureStore";
 import {
@@ -23,8 +26,16 @@ import {
 } from "@/utils/nativeCaptureUtils";
 import { saveScan } from "@/utils/scanStorage";
 import { hasRoomPlan } from "@/utils/deviceDetection";
+import { ENABLE_ROOMPLAN, GENERATE_MOCK_STL } from "@/utils/featureFlags";
 import * as FileSystem from "expo-file-system/legacy";
 import { CoverageRing } from "@/components/CoverageRing";
+import { generateMockSTLFromPhotos } from "@/utils/mockStlGenerator";
+
+// Capture throttles (ms)
+const HORIZONTAL_CAPTURE_DELAY = 200;
+const HORIZONTAL_FALLBACK_DELAY = 500;
+const VERTICAL_CAPTURE_DELAY = 140; // quicker cadence for ceiling/floor sweeps
+const VERTICAL_FALLBACK_DELAY = 320;
 
 type RoomPlanExportEvent = {
   nativeEvent?: {
@@ -38,6 +49,32 @@ type RoomPlanModule = typeof import("expo-roomplan");
 type RoomPlanScannerProps = {
   roomPlanModule: RoomPlanModule;
 };
+
+const isRoomPlanNativeModuleAvailable = () =>
+  Platform.OS === "ios" &&
+  Boolean((NativeModules as any)?.ExpoRoomPlan);
+
+async function copyRoom2STLToScans(): Promise<string> {
+  const asset = Asset.fromModule(require("../assets/room2.stl"));
+  if (!asset.localUri) {
+    await asset.downloadAsync();
+  }
+
+  const sourceUri = asset.localUri ?? asset.uri;
+  const directory = `${FileSystem.documentDirectory}scans/`;
+  const dirInfo = await FileSystem.getInfoAsync(directory);
+  if (!dirInfo.exists) {
+    await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+  }
+
+  const destination = `${directory}room2_${Date.now()}.stl`;
+  await FileSystem.copyAsync({
+    from: sourceUri,
+    to: destination,
+  });
+
+  return destination;
+}
 
 function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
   const { useRoomPlanView, RoomPlanView, ExportType } = roomPlanModule;
@@ -206,7 +243,8 @@ export default function NativeScan() {
     let mounted = true;
     const check = async () => {
       try {
-        const supported = await hasRoomPlan();
+        // Only check for RoomPlan if the feature flag is enabled
+        const supported = ENABLE_ROOMPLAN ? await hasRoomPlan() : false;
         if (mounted) {
           setRoomPlanAvailable(supported);
         }
@@ -231,6 +269,14 @@ export default function NativeScan() {
     if (!roomPlanAvailable) {
       setRoomPlanModule(null);
       setRoomPlanError(null);
+      return;
+    }
+
+    if (!isRoomPlanNativeModuleAvailable()) {
+      setRoomPlanError(
+        "RoomPlan native module missing. Run a custom dev client (expo run:ios) or an EAS build with expo-roomplan; Expo Go cannot load RoomPlan."
+      );
+      setRoomPlanModule(null);
       return;
     }
 
@@ -368,7 +414,7 @@ export default function NativeScan() {
 
           if (
             !coveredSegmentsRef.current.has(segment) &&
-            now - lastCaptureTimeRef.current > 200
+            now - lastCaptureTimeRef.current > HORIZONTAL_CAPTURE_DELAY
           ) {
             try {
               await captureFrame(segment, heading, pitch);
@@ -389,7 +435,7 @@ export default function NativeScan() {
           const currentSegmentsCount = coveredSegmentsRef.current.size;
           if (
             currentSegmentsCount < totalSegments &&
-            now - lastCaptureTimeRef.current > 500
+            now - lastCaptureTimeRef.current > HORIZONTAL_FALLBACK_DELAY
           ) {
             const nextSegment = currentSegmentsCount;
             try {
@@ -438,7 +484,7 @@ export default function NativeScan() {
 
             if (
               !ceilingSegmentsRef.current.has(segment) &&
-              now - lastCaptureTimeRef.current > 200
+              now - lastCaptureTimeRef.current > VERTICAL_CAPTURE_DELAY
             ) {
               try {
                 await captureFrame(segment, heading, pitch);
@@ -459,7 +505,7 @@ export default function NativeScan() {
             const currentSegmentsCount = ceilingSegmentsRef.current.size;
             if (
               currentSegmentsCount < totalSegments &&
-              now - lastCaptureTimeRef.current > 500
+              now - lastCaptureTimeRef.current > VERTICAL_FALLBACK_DELAY
             ) {
               const nextSegment = currentSegmentsCount;
               try {
@@ -512,7 +558,7 @@ export default function NativeScan() {
 
             if (
               !floorSegmentsRef.current.has(segment) &&
-              now - lastCaptureTimeRef.current > 200
+              now - lastCaptureTimeRef.current > VERTICAL_CAPTURE_DELAY
             ) {
               try {
                 await captureFrame(segment, heading, pitch);
@@ -533,7 +579,7 @@ export default function NativeScan() {
             const currentSegmentsCount = floorSegmentsRef.current.size;
             if (
               currentSegmentsCount < totalSegments &&
-              now - lastCaptureTimeRef.current > 500
+              now - lastCaptureTimeRef.current > VERTICAL_FALLBACK_DELAY
             ) {
               const nextSegment = currentSegmentsCount;
               try {
@@ -670,6 +716,23 @@ export default function NativeScan() {
     setStep("uploading");
 
     try {
+      let stlUrl: string | undefined;
+
+      try {
+        stlUrl = await copyRoom2STLToScans();
+      } catch (assetError) {
+        console.warn("Failed to attach room2 STL:", assetError);
+        if (GENERATE_MOCK_STL) {
+          try {
+            stlUrl = await generateMockSTLFromPhotos(
+              Math.max(capturedImages.length, 1)
+            );
+          } catch (stlError) {
+            console.warn("Failed to generate mock STL:", stlError);
+          }
+        }
+      }
+
       // Save scan metadata
       const scanId = `scan_${Date.now()}`;
       const thumbnailUri = capturedImages[0] || undefined;
@@ -681,6 +744,7 @@ export default function NativeScan() {
         },
         backendScanId: scanId,
         thumbnail: thumbnailUri,
+        stlUrl,
       });
 
       Alert.alert(

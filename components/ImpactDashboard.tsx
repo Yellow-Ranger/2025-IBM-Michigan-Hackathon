@@ -313,9 +313,10 @@ const styles = StyleSheet.create({
   },
   scoreHeader: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 6,
     marginBottom: 8,
+    flexWrap: "wrap",
   },
   scoreIcon: {
     fontSize: 18,
@@ -326,6 +327,9 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.7)",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    lineHeight: 13,
+    flexShrink: 1,
+    flex: 1,
   },
   scoreValue: {
     fontSize: 32,

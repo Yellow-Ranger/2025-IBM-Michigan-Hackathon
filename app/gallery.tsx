@@ -149,9 +149,16 @@ export default function Gallery() {
     );
   };
 
-  const handleViewScan = (scanId: string) => {
+  const handlePreviewScan = (scanId: string) => {
     router.push({
       pathname: "/preview",
+      params: { scanId },
+    });
+  };
+
+  const handleView3D = (scanId: string) => {
+    router.push({
+      pathname: "/viewer",
       params: { scanId },
     });
   };
@@ -172,7 +179,7 @@ export default function Gallery() {
           styles.scanCard,
           pressed && styles.scanCardPressed,
         ]}
-        onPress={() => handleViewScan(item.id)}
+        onPress={() => handlePreviewScan(item.id)}
         onLongPress={() =>
           handleDeleteScan(item.id, formatScanDate(item.timestamp))
         }
@@ -218,7 +225,7 @@ export default function Gallery() {
           <View style={styles.scanCardFooter}>
             <Pressable
               style={styles.actionButton}
-              onPress={() => handleViewScan(item.id)}
+              onPress={() => handleView3D(item.id)}
             >
               <MaterialCommunityIcons name="eye" size={16} color="#00d4ff" />
               <Text style={styles.actionText}>View 3D</Text>

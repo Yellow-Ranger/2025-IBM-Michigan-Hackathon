@@ -20,11 +20,6 @@ export function useNativeOrientation() {
 
   const accelerometerSubscription = useRef<any>(null);
   const magnetometerSubscription = useRef<any>(null);
-  const lastLoggedOrientationRef = useRef<OrientationData | null>(null);
-  const lastLogTimeRef = useRef(0);
-
-  // Only log orientation changes when movement exceeds this many degrees
-  const SIGNIFICANT_MOVEMENT_DEGREES = 5;
 
   const calculateOrientation = (
     accel: { x: number; y: number; z: number } | null,
@@ -83,31 +78,6 @@ export function useNativeOrientation() {
     return { alpha, beta, gamma, absolute: true };
   };
 
-  const shouldLog = (newOrientation: OrientationData): boolean => {
-    const now = Date.now();
-    const lastLogged = lastLoggedOrientationRef.current;
-
-    if (!lastLogged || now - lastLogTimeRef.current > 1000) {
-      return true;
-    }
-
-    const deltaAlpha = lastLogged.alpha == null || newOrientation.alpha == null
-      ? 0
-      : Math.abs(newOrientation.alpha - lastLogged.alpha);
-    const deltaBeta = lastLogged.beta == null || newOrientation.beta == null
-      ? 0
-      : Math.abs(newOrientation.beta - lastLogged.beta);
-    const deltaGamma = lastLogged.gamma == null || newOrientation.gamma == null
-      ? 0
-      : Math.abs(newOrientation.gamma - lastLogged.gamma);
-
-    return (
-      deltaAlpha >= SIGNIFICANT_MOVEMENT_DEGREES ||
-      deltaBeta >= SIGNIFICANT_MOVEMENT_DEGREES ||
-      deltaGamma >= SIGNIFICANT_MOVEMENT_DEGREES
-    );
-  };
-
   const startListening = async () => {
     try {
       let accelData: { x: number; y: number; z: number } | null = null;
@@ -121,12 +91,6 @@ export function useNativeOrientation() {
       accelerometerSubscription.current = Accelerometer.addListener((data) => {
         accelData = data;
         const newOrientation = calculateOrientation(accelData, magData);
-
-        if (shouldLog(newOrientation)) {
-          lastLoggedOrientationRef.current = newOrientation;
-          lastLogTimeRef.current = Date.now();
-          console.log('Orientation update:', newOrientation);
-        }
 
         setOrientation(newOrientation);
       });
