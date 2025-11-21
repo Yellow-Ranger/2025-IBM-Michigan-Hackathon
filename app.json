@@ -15,7 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.projectlyoko.app",
-      "deploymentTarget": "17.0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs camera access to scan rooms and capture photos for 3D reconstruction.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save scanned room models.",
@@ -52,7 +51,7 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan rooms."
         }
       ],
-      "./plugins/withRoomPlan.js"
+      "expo-roomplan"
     ],
     "experiments": {
       "typedRoutes": true
