@@ -78,12 +78,12 @@ export default function Home() {
           </View>
 
           <View style={styles.header}>
-            <Image
+            {/* <Image
               source={require("../assets/appicon.jpg")}
               style={styles.logo}
               resizeMode="contain"
               accessibilityLabel="Project Lyoko icon"
-            />
+            /> */}
             <Text style={styles.title}>Project Lyoko</Text>
             <Text style={styles.subtitle}>
               Scan rooms or redesign the floor with Watsonx
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     opacity: 0.65,
   },
   header: {
-    marginTop: 32,
+    marginTop: 20,
     alignItems: "center",
     gap: 8,
   },
