@@ -1,5 +1,12 @@
 import { useMemo } from "react";
-import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -71,6 +78,12 @@ export default function Home() {
           </View>
 
           <View style={styles.header}>
+            <Image
+              source={require("../assets/appicon.jpg")}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="Project Lyoko icon"
+            />
             <Text style={styles.title}>Project Lyoko</Text>
             <Text style={styles.subtitle}>
               Scan rooms or redesign the floor with Watsonx
@@ -143,7 +156,19 @@ const styles = StyleSheet.create({
   header: {
     marginTop: 32,
     alignItems: "center",
-    gap: 2,
+    gap: 8,
+  },
+  logo: {
+    width: 90,
+    height: 90,
+    borderRadius: 22,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(15, 88, 193, 0.08)",
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
   },
   title: {
     fontSize: 36,
