@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   Alert,
   RefreshControl,
   Image,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   getAllScans,
   deleteScan,
@@ -18,7 +18,8 @@ import {
   formatScanDate,
   SavedScan,
   getStorageStats,
-} from '@/utils/scanStorage';
+} from "@/utils/scanStorage";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 function formatTotalPoints(totalPoints: number): string {
   if (totalPoints >= 1_000_000) {
@@ -35,10 +36,10 @@ function getValidThumbnailUri(thumbnail?: string | null): string | undefined {
 
   try {
     const parsed = JSON.parse(thumbnail);
-    if (parsed && typeof parsed === 'object') {
+    if (parsed && typeof parsed === "object") {
       const path = (parsed as any).imagePaths?.[0];
-      if (typeof path === 'string') {
-        return path.startsWith('file://') ? path : `file://${path}`;
+      if (typeof path === "string") {
+        return path.startsWith("file://") ? path : `file://${path}`;
       }
     }
   } catch {
@@ -47,10 +48,10 @@ function getValidThumbnailUri(thumbnail?: string | null): string | undefined {
 
   const trimmed = thumbnail.trim();
   if (
-    trimmed.startsWith('file://') ||
-    trimmed.startsWith('content://') ||
-    trimmed.startsWith('data:') ||
-    trimmed.startsWith('http')
+    trimmed.startsWith("file://") ||
+    trimmed.startsWith("content://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("http")
   ) {
     return trimmed;
   }
@@ -82,8 +83,8 @@ export default function Gallery() {
       setScans(loadedScans);
       setStats(storageStats);
     } catch (error) {
-      console.error('Error loading scans:', error);
-      Alert.alert('Error', 'Failed to load scans');
+      console.error("Error loading scans:", error);
+      Alert.alert("Error", "Failed to load scans");
     }
   };
 
@@ -95,22 +96,22 @@ export default function Gallery() {
 
   const handleDeleteScan = (scanId: string, scanDate: string) => {
     Alert.alert(
-      'Delete Scan',
+      "Delete Scan",
       `Are you sure you want to delete the scan from ${scanDate}?`,
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteScan(scanId);
               await loadScans();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete scan');
+              Alert.alert("Error", "Failed to delete scan");
             }
           },
         },
@@ -120,27 +121,27 @@ export default function Gallery() {
 
   const handleDeleteAll = () => {
     if (scans.length === 0) {
-      Alert.alert('No Scans', 'There are no scans to delete');
+      Alert.alert("No Scans", "There are no scans to delete");
       return;
     }
 
     Alert.alert(
-      'Delete All Scans',
+      "Delete All Scans",
       `Are you sure you want to delete all ${scans.length} scans? This action cannot be undone.`,
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete All',
-          style: 'destructive',
+          text: "Delete All",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteAllScans();
               await loadScans();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete scans');
+              Alert.alert("Error", "Failed to delete scans");
             }
           },
         },
@@ -150,7 +151,14 @@ export default function Gallery() {
 
   const handleViewScan = (scanId: string) => {
     router.push({
-      pathname: '/preview',
+      pathname: "/preview",
+      params: { scanId },
+    });
+  };
+
+  const handleEditLayout = (scanId: string) => {
+    router.push({
+      pathname: "/layout",
       params: { scanId },
     });
   };
@@ -165,20 +173,28 @@ export default function Gallery() {
           pressed && styles.scanCardPressed,
         ]}
         onPress={() => handleViewScan(item.id)}
-        onLongPress={() => handleDeleteScan(item.id, formatScanDate(item.timestamp))}
+        onLongPress={() =>
+          handleDeleteScan(item.id, formatScanDate(item.timestamp))
+        }
       >
         <LinearGradient
-          colors={['rgba(0, 212, 255, 0.1)', 'rgba(0, 212, 255, 0.05)']}
+          colors={["rgba(0, 212, 255, 0.1)", "rgba(0, 212, 255, 0.05)"]}
           style={styles.scanCardGradient}
         >
-        <View style={styles.scanCardHeader}>
-          <Text style={styles.scanCardMode}>
-            {item.scanMode === 'lidar' ? (item.roomPlan ? '📐 RoomPlan' : '📡 LiDAR') : '📷 Photo'}
-          </Text>
-          <Pressable
-            style={styles.deleteButton}
-            onPress={() => handleDeleteScan(item.id, formatScanDate(item.timestamp))}
-          >
+          <View style={styles.scanCardHeader}>
+            <Text style={styles.scanCardMode}>
+              {item.scanMode === "lidar"
+                ? item.roomPlan
+                  ? "📐 RoomPlan"
+                  : "📡 LiDAR"
+                : "📷 Photo"}
+            </Text>
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() =>
+                handleDeleteScan(item.id, formatScanDate(item.timestamp))
+              }
+            >
               <Text style={styles.deleteButtonText}>Delete</Text>
             </Pressable>
           </View>
@@ -191,14 +207,29 @@ export default function Gallery() {
                 resizeMode="cover"
               />
             )}
-            <Text style={styles.scanCardDate}>{formatScanDate(item.timestamp)}</Text>
+            <Text style={styles.scanCardDate}>
+              {formatScanDate(item.timestamp)}
+            </Text>
             <Text style={styles.scanCardPoints}>
               {item.pointCount.toLocaleString()} points
             </Text>
           </View>
 
           <View style={styles.scanCardFooter}>
-            <Text style={styles.viewText}>Tap to view</Text>
+            <Pressable
+              style={styles.actionButton}
+              onPress={() => handleViewScan(item.id)}
+            >
+              <MaterialCommunityIcons name="eye" size={16} color="#00d4ff" />
+              <Text style={styles.actionText}>View 3D</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.actionButton, styles.actionButtonPrimary]}
+              onPress={() => handleEditLayout(item.id)}
+            >
+              <MaterialCommunityIcons name="floor-plan" size={16} color="#0b0f24" />
+              <Text style={styles.actionTextPrimary}>Edit Layout</Text>
+            </Pressable>
           </View>
         </LinearGradient>
       </Pressable>
@@ -214,7 +245,7 @@ export default function Gallery() {
       </Text>
       <Pressable
         style={styles.startScanButton}
-        onPress={() => router.push('/scan-webview')}
+        onPress={() => router.push("/scan-webview")}
       >
         <Text style={styles.startScanButtonText}>Start Scanning</Text>
       </Pressable>
@@ -240,7 +271,9 @@ export default function Gallery() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{formatTotalPoints(stats.totalPoints)}</Text>
+            <Text style={styles.statValue}>
+              {formatTotalPoints(stats.totalPoints)}
+            </Text>
             <Text style={styles.statLabel}>Total 3D Points</Text>
           </View>
         </View>
@@ -250,8 +283,25 @@ export default function Gallery() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.layoutCardContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.layoutCard,
+            pressed && styles.layoutCardPressed,
+          ]}
+          onPress={() => router.push("/layout")}
+        >
+          <View style={styles.layoutCardText}>
+            <Text style={styles.layoutTitle}>Layout Studio</Text>
+            <Text style={styles.layoutBody}>
+              2D/3D editor + natural language commands powered by Watsonx
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="factory" size={40} color="#0b0f24" />
+        </Pressable>
+      </View>
       <LinearGradient
-        colors={['#000000', '#001a1a', '#000000']}
+        colors={["#000000", "#001a1a", "#000000"]}
         style={styles.gradient}
       >
         <FlatList
@@ -266,7 +316,7 @@ export default function Gallery() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor="#00d4ff"
-              colors={['#00d4ff']}
+              colors={["#00d4ff"]}
             />
           }
         />
@@ -278,7 +328,7 @@ export default function Gallery() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   gradient: {
     flex: 1,
@@ -291,60 +341,94 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   title: {
     fontSize: 32,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
+  },
+  layoutCardContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  layoutCard: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#cde3ff",
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: "rgba(15, 88, 193, 0.2)",
+    gap: 12,
+  },
+  layoutCardPressed: {
+    opacity: 0.9,
+    transform: [{ translateY: 2 }],
+  },
+  layoutCardText: {
+    flex: 1,
+    gap: 6,
+  },
+  layoutTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0b0f24",
+  },
+  layoutBody: {
+    fontSize: 14,
+    color: "#0b0f24",
+    lineHeight: 20,
   },
   deleteAllButton: {
-    backgroundColor: 'rgba(255, 0, 110, 0.2)',
+    backgroundColor: "rgba(255, 0, 110, 0.2)",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 110, 0.3)',
+    borderColor: "rgba(255, 0, 110, 0.3)",
   },
   deleteAllButtonText: {
-    color: '#ff006e',
+    color: "#ff006e",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    flexDirection: "row",
+    backgroundColor: "rgba(0, 212, 255, 0.1)",
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.2)',
+    borderColor: "rgba(0, 212, 255, 0.2)",
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statDivider: {
     width: 1,
-    backgroundColor: 'rgba(0, 212, 255, 0.2)',
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
     marginHorizontal: 20,
   },
   statValue: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#00d4ff',
+    fontWeight: "700",
+    color: "#00d4ff",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#a0a0a0',
+    color: "#a0a0a0",
   },
   scanCard: {
     marginBottom: 16,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   scanCardPressed: {
     opacity: 0.8,
@@ -353,66 +437,90 @@ const styles = StyleSheet.create({
   scanCardGradient: {
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.2)',
+    borderColor: "rgba(0, 212, 255, 0.2)",
     borderRadius: 16,
   },
   scanCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   scanCardMode: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#00d4ff',
+    fontWeight: "600",
+    color: "#00d4ff",
   },
   deleteButton: {
-    backgroundColor: 'rgba(255, 0, 110, 0.2)',
+    backgroundColor: "rgba(255, 0, 110, 0.2)",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 110, 0.3)',
+    borderColor: "rgba(255, 0, 110, 0.3)",
   },
   deleteButtonText: {
-    color: '#ff006e',
+    color: "#ff006e",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   scanCardBody: {
     marginBottom: 12,
   },
   thumbnail: {
-    width: '100%',
+    width: "100%",
     height: 140,
     borderRadius: 12,
     marginBottom: 8,
   },
   scanCardDate: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     marginBottom: 4,
   },
   scanCardPoints: {
     fontSize: 14,
-    color: '#a0a0a0',
+    color: "#a0a0a0",
   },
   scanCardFooter: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
     paddingTop: 12,
+    flexDirection: "row",
+    gap: 8,
   },
-  viewText: {
-    fontSize: 14,
-    color: '#00d4ff',
-    fontWeight: '600',
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: "rgba(0, 212, 255, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 255, 0.3)",
+  },
+  actionButtonPrimary: {
+    backgroundColor: "#00d4ff",
+    borderColor: "#00d4ff",
+  },
+  actionText: {
+    fontSize: 13,
+    color: "#00d4ff",
+    fontWeight: "600",
+  },
+  actionTextPrimary: {
+    fontSize: 13,
+    color: "#0b0f24",
+    fontWeight: "700",
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 80,
     paddingHorizontal: 40,
   },
@@ -422,27 +530,27 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: '#a0a0a0',
-    textAlign: 'center',
+    color: "#a0a0a0",
+    textAlign: "center",
     marginBottom: 32,
     lineHeight: 24,
   },
   startScanButton: {
-    backgroundColor: '#00d4ff',
+    backgroundColor: "#00d4ff",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
   },
   startScanButtonText: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

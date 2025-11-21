@@ -25,7 +25,6 @@ import { saveScan } from "@/utils/scanStorage";
 import { hasRoomPlan } from "@/utils/deviceDetection";
 import * as FileSystem from "expo-file-system/legacy";
 import { CoverageRing } from "@/components/CoverageRing";
-import { useRoomPlanView, RoomPlanView, ExportType } from "expo-roomplan";
 
 type RoomPlanExportEvent = {
   nativeEvent?: {
@@ -34,7 +33,14 @@ type RoomPlanExportEvent = {
   };
 };
 
-function RoomPlanScanner() {
+type RoomPlanModule = typeof import("expo-roomplan");
+
+type RoomPlanScannerProps = {
+  roomPlanModule: RoomPlanModule;
+};
+
+function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
+  const { useRoomPlanView, RoomPlanView, ExportType } = roomPlanModule;
   const router = useRouter();
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -189,6 +195,10 @@ export default function NativeScan() {
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [roomPlanAvailable, setRoomPlanAvailable] = useState<boolean>(false);
+  const [roomPlanModule, setRoomPlanModule] = useState<RoomPlanModule | null>(
+    null
+  );
+  const [roomPlanError, setRoomPlanError] = useState<string | null>(null);
   const [deviceCheckComplete, setDeviceCheckComplete] =
     useState<boolean>(false);
 
@@ -214,6 +224,36 @@ export default function NativeScan() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!roomPlanAvailable) {
+      setRoomPlanModule(null);
+      setRoomPlanError(null);
+      return;
+    }
+
+    (async () => {
+      try {
+        const mod = await import("expo-roomplan");
+        if (!cancelled) {
+          setRoomPlanModule(mod);
+        }
+      } catch (error) {
+        console.warn("RoomPlan module unavailable", error);
+        if (!cancelled) {
+          setRoomPlanError(
+            "RoomPlan native module missing. Rebuild the dev client or create a new EAS build with expo-roomplan installed."
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [roomPlanAvailable]);
 
   // Refs to track segments for the capture loop
   const coveredSegmentsRef = useRef<Set<number>>(new Set());
@@ -695,7 +735,31 @@ export default function NativeScan() {
       );
     }
 
-    return <RoomPlanScanner />;
+    if (roomPlanError) {
+      return (
+        <View style={styles.container}>
+          <View style={styles.permissionContainer}>
+            <Text style={styles.permissionText}>
+              {roomPlanError}
+            </Text>
+            <Text style={styles.permissionText}>
+              If you just added expo-roomplan, rebuild your dev client or make a new EAS build.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (!roomPlanModule) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00d4ff" />
+          <Text style={styles.loadingText}>Loading RoomPlan module...</Text>
+        </View>
+      );
+    }
+
+    return <RoomPlanScanner roomPlanModule={roomPlanModule} />;
   }
 
   if (!cameraPermission || !orientationPermission) {

@@ -56,8 +56,10 @@ export default function Home() {
           </View>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Start your</Text>
-            <Text style={styles.title}>Room scan</Text>
+            <Text style={styles.title}>Project Lyoko</Text>
+            <Text style={styles.subtitle}>
+              Scan rooms or redesign the floor with Watsonx
+            </Text>
           </View>
 
           <Pressable
@@ -134,6 +136,12 @@ const styles = StyleSheet.create({
     color: PRIMARY,
     textAlign: "center",
     letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#1f406f",
+    textAlign: "center",
+    marginTop: 6,
   },
   cameraButton: {
     width: 120,

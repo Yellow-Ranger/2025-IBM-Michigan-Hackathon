@@ -23,7 +23,7 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
-          name="scan-webview"
+          name="native-scan"
           options={{
             title: "Scan Room",
             headerShown: true,
@@ -40,6 +40,13 @@ export default function RootLayout() {
           name="preview"
           options={{
             title: "Scan Preview",
+            headerShown: true,
+          }}
+        />
+        <Stack.Screen
+          name="layout"
+          options={{
+            title: "Layout Studio",
             headerShown: true,
           }}
         />
