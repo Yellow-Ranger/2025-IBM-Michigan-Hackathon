@@ -12,7 +12,7 @@
  *
  * Default: false (use photos)
  */
-export const ENABLE_ROOMPLAN = false;
+export const ENABLE_ROOMPLAN = true;
 
 /**
  * Generate mock STL files after photo capture
