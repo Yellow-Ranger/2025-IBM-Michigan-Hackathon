@@ -65,6 +65,11 @@ export async function getAllScans(): Promise<SavedScan[]> {
 }
 
 /**
+ * Alias for getAllScans (for compatibility)
+ */
+export const getScans = getAllScans;
+
+/**
  * Get a single scan by ID
  */
 export async function getScanById(id: string): Promise<SavedScan | null> {

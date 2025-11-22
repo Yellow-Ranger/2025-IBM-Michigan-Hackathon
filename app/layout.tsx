@@ -23,6 +23,7 @@ import {
 } from "@/utils/layoutPlanner";
 import { planWithFallback } from "@/utils/watsonxClient";
 import { getScanById } from "@/utils/scanStorage";
+import { convertRoomPlanToLayout } from "@/utils/roomPlanToLayout";
 
 const PRIMARY = "#0f58c1";
 
@@ -50,9 +51,24 @@ export default function LayoutScreen() {
       setLoadingScan(true);
       const scan = await getScanById(id);
       if (scan) {
-        setScanInfo(`Loaded from ${scan.scanMode === "lidar" ? "LiDAR" : "Photo"} scan with ${scan.pointCount} points`);
-        setStatus("Loaded scan data - ready for commands");
-        setSummary(`Floor plan initialized from ${scan.scanMode === "lidar" ? "LiDAR" : "photo"} scan captured on ${new Date(scan.timestamp).toLocaleDateString()}`);
+        // If scan has RoomPlan JSON data, load it into the layout
+        if (scan.roomPlan?.jsonUrl) {
+          const roomPlanItems = await convertRoomPlanToLayout(scan.roomPlan.jsonUrl);
+          if (roomPlanItems.length > 0) {
+            setItems(roomPlanItems);
+            setScanInfo(`Loaded ${roomPlanItems.length} items from RoomPlan scan`);
+            setStatus("RoomPlan data loaded - ready for commands");
+            setSummary(`Floor plan loaded from LiDAR scan with ${roomPlanItems.length} detected objects`);
+          } else {
+            setScanInfo(`Loaded from ${scan.scanMode === "lidar" ? "LiDAR" : "Photo"} scan with ${scan.pointCount} points`);
+            setStatus("Loaded scan data - ready for commands");
+            setSummary(`Floor plan initialized from ${scan.scanMode === "lidar" ? "LiDAR" : "photo"} scan captured on ${new Date(scan.timestamp).toLocaleDateString()}`);
+          }
+        } else {
+          setScanInfo(`Loaded from ${scan.scanMode === "lidar" ? "LiDAR" : "Photo"} scan with ${scan.pointCount} points`);
+          setStatus("Loaded scan data - ready for commands");
+          setSummary(`Floor plan initialized from ${scan.scanMode === "lidar" ? "LiDAR" : "photo"} scan captured on ${new Date(scan.timestamp).toLocaleDateString()}`);
+        }
       }
     } catch (error) {
       console.error("Failed to load scan:", error);

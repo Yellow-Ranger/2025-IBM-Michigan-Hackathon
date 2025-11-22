@@ -151,16 +151,14 @@ export default function Gallery() {
   };
 
   const handleViewScan = async (scan: SavedScan) => {
-    // If it's a RoomPlan scan with a USDZ file, open it directly in QuickLook
-    if (scan.roomPlan?.usdzUrl) {
-      try {
-        await previewUSDZ(scan.roomPlan.usdzUrl);
-      } catch (err) {
-        console.error('Failed to preview USDZ:', err);
-        Alert.alert('Error', 'Failed to open 3D preview');
-      }
+    // If it's a RoomPlan scan with JSON data, show the detail screen with 2D/3D options
+    if (scan.roomPlan?.jsonUrl || scan.roomPlan?.usdzUrl) {
+      router.push({
+        pathname: "/scan-detail",
+        params: { scanId: scan.id },
+      });
     } else {
-      // Otherwise, navigate to the preview screen
+      // Otherwise, navigate to the old preview screen (for photo scans)
       router.push({
         pathname: "/preview",
         params: { scanId: scan.id },
@@ -234,7 +232,7 @@ export default function Gallery() {
             >
               <MaterialCommunityIcons name="eye" size={16} color="#00d4ff" />
               <Text style={styles.actionText}>
-                {item.roomPlan ? 'View 3D' : 'View Details'}
+                {item.roomPlan?.jsonUrl ? 'View Floorplan' : 'View Details'}
               </Text>
             </Pressable>
             <Pressable

@@ -35,7 +35,7 @@ export async function runWatsonxLayoutPlan(
 
   const accessToken = await fetchIamToken(apiKey);
   const response = await fetch(
-    `${baseUrl}/ml/v1-beta/text/chat?version=${version}`,
+    `${baseUrl}/ml/v1/text/chat?version=${version}`,
     {
       method: "POST",
       headers: {
