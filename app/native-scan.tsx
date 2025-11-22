@@ -79,39 +79,57 @@ async function copyRoom2STLToScans(): Promise<string> {
 function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
   const { useRoomPlanView, RoomPlanView, ExportType } = roomPlanModule;
   const router = useRouter();
-  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Ready to scan with RoomPlan");
+  const [thumbnailUri, setThumbnailUri] = useState<string | undefined>();
   const hasSavedRef = useRef(false);
+  const cameraRef = useRef<any>(null);
+
+  const handleStatus = (e: {
+    nativeEvent: { status: any; errorMessage?: string };
+  }) => {
+    const { status: nextStatus, errorMessage } = e.nativeEvent;
+    console.log(
+      "[RoomPlan] status:",
+      nextStatus,
+      errorMessage ? `- ${errorMessage}` : ""
+    );
+    if (nextStatus) {
+      setStatus(nextStatus);
+    }
+  };
+
+  const handleExported = async (e: {
+    nativeEvent: { scanUrl?: string; jsonUrl?: string };
+  }) => {
+    console.log("[RoomPlan] exported:", e.nativeEvent);
+    if (hasSavedRef.current) return;
+    hasSavedRef.current = true;
+    await handleSave(e.nativeEvent.scanUrl, e.nativeEvent.jsonUrl);
+  };
+
+  const handlePreview = () => {
+    console.log("[RoomPlan] preview presented");
+    setStatus("Previewing capture");
+  };
 
   const { viewProps, controls, state } = useRoomPlanView({
     scanName: `room-${Date.now()}`,
-    exportType: ExportType.Mesh,
+    exportType: ExportType.Parametric,
     exportOnFinish: true,
     sendFileLoc: true,
-    autoCloseOnTerminalStatus: true,
-    onStatus: (event) => {
-      const nextStatus = event?.nativeEvent?.status;
-      if (nextStatus) {
-        setStatus(nextStatus);
-      }
-    },
-    onPreview: () => setStatus("Previewing capture"),
-    onExported: async (event: RoomPlanExportEvent) => {
-      if (hasSavedRef.current) return;
-      hasSavedRef.current = true;
-      await handleSave(
-        event?.nativeEvent?.scanUrl,
-        event?.nativeEvent?.jsonUrl
-      );
-    },
+    autoCloseOnTerminalStatus: false,
+    onStatus: handleStatus,
+    onPreview: handlePreview,
+    onExported: handleExported,
   });
 
   useEffect(() => {
-    if (overlayVisible && !state.isRunning && !saving) {
-      setOverlayVisible(false);
+    if (showScanner && !state.isRunning && !saving) {
+      setShowScanner(false);
     }
-  }, [overlayVisible, saving, state.isRunning]);
+  }, [showScanner, state.isRunning, saving]);
 
   const handleSave = async (usdzUrl?: string, jsonUrl?: string) => {
     setSaving(true);
@@ -123,8 +141,9 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
         roomPlan: {
           usdzUrl,
           jsonUrl,
-          exportType: "mesh",
+          exportType: "parametric",
         },
+        thumbnail: thumbnailUri,
       });
 
       Alert.alert(
@@ -146,53 +165,105 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
       Alert.alert("Error", "Failed to save RoomPlan scan.");
     } finally {
       setSaving(false);
-      setOverlayVisible(false);
+      setShowScanner(false);
+      setThumbnailUri(undefined);
     }
   };
 
-  const startScan = () => {
+  const captureThumbnail = async () => {
+    if (!cameraRef.current) return;
+
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.5,
+        base64: false,
+      });
+
+      if (photo && photo.uri) {
+        const filename = `roomplan_thumb_${Date.now()}.jpg`;
+        const directory = `${FileSystem.documentDirectory}thumbnails/`;
+
+        const dirInfo = await FileSystem.getInfoAsync(directory);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+        }
+
+        const newPath = `${directory}${filename}`;
+        await FileSystem.moveAsync({
+          from: photo.uri,
+          to: newPath,
+        });
+
+        setThumbnailUri(newPath);
+      }
+    } catch (error) {
+      console.error("Failed to capture thumbnail:", error);
+    }
+  };
+
+  const openScanner = async () => {
+    // Capture a thumbnail before starting the scan
+    await captureThumbnail();
+
     hasSavedRef.current = false;
     setStatus("Scanning...");
-    setOverlayVisible(true);
+    setShowScanner(true);
     controls.start();
+  };
+
+  const onCancel = () => {
+    controls.cancel();
+    setShowScanner(false);
+  };
+
+  const onFinish = () => {
+    controls.finishScan();
+  };
+
+  const onNewRoom = () => {
+    controls.addRoom();
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.instructionsBox}>
-        <Text style={styles.title}>LiDAR Scan (RoomPlan)</Text>
-        <Text style={styles.subtitle}>
-          This device supports Apple RoomPlan. Start a LiDAR-native capture for
-          a quick, high-fidelity room mesh.
-        </Text>
-        <Pressable style={styles.startButton} onPress={startScan}>
-          <Text style={styles.startButtonText}>Start RoomPlan Scan</Text>
-        </Pressable>
-        <Text style={styles.statusText}>Status: {status}</Text>
-      </View>
+      {!showScanner && !saving && (
+        <>
+          <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+          <View style={styles.overlay}>
+            <View style={styles.instructionsBox}>
+              <Text style={styles.title}>LiDAR Scan (RoomPlan)</Text>
+              <Text style={styles.subtitle}>
+                This device supports Apple RoomPlan. Start a LiDAR-native capture for
+                a quick, high-fidelity room mesh.
+              </Text>
+              <Pressable style={styles.startButton} onPress={openScanner}>
+                <Text style={styles.startButtonText}>Start RoomPlan Scan</Text>
+              </Pressable>
+              <Text style={styles.statusText}>Status: {status}</Text>
+            </View>
+          </View>
+        </>
+      )}
 
-      {overlayVisible && (
-        <View style={StyleSheet.absoluteFill}>
+      {showScanner && (
+        <View style={styles.overlayFull}>
           <RoomPlanView style={StyleSheet.absoluteFill} {...viewProps} />
           <View style={styles.roomPlanControls}>
             <Pressable
               style={styles.roomPlanControlButton}
-              onPress={() => {
-                controls.cancel();
-                setOverlayVisible(false);
-              }}
+              onPress={onCancel}
             >
               <Text style={styles.roomPlanControlText}>Cancel</Text>
             </Pressable>
             <Pressable
               style={styles.roomPlanControlButton}
-              onPress={controls.finishScan}
+              onPress={onFinish}
             >
               <Text style={styles.roomPlanControlText}>Finish</Text>
             </Pressable>
             <Pressable
               style={styles.roomPlanControlButton}
-              onPress={controls.addRoom}
+              onPress={onNewRoom}
             >
               <Text style={styles.roomPlanControlText}>Add Room</Text>
             </Pressable>
@@ -1139,6 +1210,11 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  overlayFull: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
+    height: "100%",
   },
   topInfo: {
     position: "absolute",

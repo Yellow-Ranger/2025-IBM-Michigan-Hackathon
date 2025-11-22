@@ -20,6 +20,7 @@ import {
   getStorageStats,
 } from "@/utils/scanStorage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { previewUSDZ } from "@/utils/usdzViewer";
 
 function formatTotalPoints(totalPoints: number): string {
   if (totalPoints >= 1_000_000) {
@@ -149,18 +150,22 @@ export default function Gallery() {
     );
   };
 
-  const handlePreviewScan = (scanId: string) => {
-    router.push({
-      pathname: "/preview",
-      params: { scanId },
-    });
-  };
-
-  const handleView3D = (scanId: string) => {
-    router.push({
-      pathname: "/viewer",
-      params: { scanId },
-    });
+  const handleViewScan = async (scan: SavedScan) => {
+    // If it's a RoomPlan scan with a USDZ file, open it directly in QuickLook
+    if (scan.roomPlan?.usdzUrl) {
+      try {
+        await previewUSDZ(scan.roomPlan.usdzUrl);
+      } catch (err) {
+        console.error('Failed to preview USDZ:', err);
+        Alert.alert('Error', 'Failed to open 3D preview');
+      }
+    } else {
+      // Otherwise, navigate to the preview screen
+      router.push({
+        pathname: "/preview",
+        params: { scanId: scan.id },
+      });
+    }
   };
 
   const handleEditLayout = (scanId: string) => {
@@ -179,7 +184,7 @@ export default function Gallery() {
           styles.scanCard,
           pressed && styles.scanCardPressed,
         ]}
-        onPress={() => handlePreviewScan(item.id)}
+        onPress={() => handleViewScan(item)}
         onLongPress={() =>
           handleDeleteScan(item.id, formatScanDate(item.timestamp))
         }
@@ -225,10 +230,12 @@ export default function Gallery() {
           <View style={styles.scanCardFooter}>
             <Pressable
               style={styles.actionButton}
-              onPress={() => handleView3D(item.id)}
+              onPress={() => handleViewScan(item)}
             >
               <MaterialCommunityIcons name="eye" size={16} color="#00d4ff" />
-              <Text style={styles.actionText}>View 3D</Text>
+              <Text style={styles.actionText}>
+                {item.roomPlan ? 'View 3D' : 'View Details'}
+              </Text>
             </Pressable>
             <Pressable
               style={[styles.actionButton, styles.actionButtonPrimary]}
