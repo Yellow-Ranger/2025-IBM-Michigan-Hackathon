@@ -203,7 +203,19 @@ export function convertTo2DFloorplan(room: CapturedRoom): Floorplan2D {
     maxZ = -Infinity;
 
   // Process walls - RoomPlan walls are centered rectangles
-  room.walls?.forEach((wall) => {
+  room.walls?.forEach((wall, index) => {
+    // Defensive checks in case the RoomPlan JSON has partial/missing data
+    if (!wall || !wall.transform || !wall.transform.position || !wall.dimensions) {
+      console.warn("[RoomPlanParser] Skipping wall with missing transform/position/dimensions", {
+        index,
+        hasWall: !!wall,
+        hasTransform: !!wall?.transform,
+        hasPosition: !!wall?.transform && "position" in wall.transform,
+        hasDimensions: !!wall?.dimensions,
+      });
+      return;
+    }
+
     const pos = wall.transform.position;
     const dim = wall.dimensions;
     const rotation = getRotationDegrees(wall.transform);

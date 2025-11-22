@@ -45,7 +45,7 @@ export async function runWatsonxLayoutPlan(
       },
       body: JSON.stringify({
         model_id: modelId,
-        input: buildChatMessages(userPrompt, items),
+        messages: buildChatMessages(userPrompt, items),
         project_id: projectId,
         parameters: {
           decoding_method: "greedy",
