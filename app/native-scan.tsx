@@ -51,8 +51,7 @@ type RoomPlanScannerProps = {
 };
 
 const isRoomPlanNativeModuleAvailable = () =>
-  Platform.OS === "ios" &&
-  Boolean((NativeModules as any)?.ExpoRoomPlan);
+  Platform.OS === "ios" && Boolean((NativeModules as any)?.ExpoRoomPlan);
 
 async function copyRoom2STLToScans(): Promise<string> {
   const asset = Asset.fromModule(require("../assets/room2.stl"));
@@ -83,14 +82,19 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Ready to scan with RoomPlan");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [userFriendlyMessage, setUserFriendlyMessage] = useState<string | null>(null);
+  const [userFriendlyMessage, setUserFriendlyMessage] = useState<string | null>(
+    null
+  );
   const [thumbnailUri, setThumbnailUri] = useState<string | undefined>();
   const hasSavedRef = useRef(false);
   const cameraRef = useRef<any>(null);
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to convert technical messages to user-friendly ones
-  const formatUserFriendlyMessage = (status: string, error?: string): string | null => {
+  const formatUserFriendlyMessage = (
+    status: string,
+    error?: string
+  ): string | null => {
     // Clear previous timeout
     if (messageTimeoutRef.current) {
       clearTimeout(messageTimeoutRef.current);
@@ -137,11 +141,7 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
     nativeEvent: { status: any; errorMessage?: string };
   }) => {
     const { status: nextStatus, errorMessage: error } = e.nativeEvent;
-    console.log(
-      "[RoomPlan] status:",
-      nextStatus,
-      error ? `- ${error}` : ""
-    );
+    console.log("[RoomPlan] status:", nextStatus, error ? `- ${error}` : "");
 
     if (nextStatus) {
       setStatus(nextStatus);
@@ -256,7 +256,9 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
 
         const dirInfo = await FileSystem.getInfoAsync(directory);
         if (!dirInfo.exists) {
-          await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+          await FileSystem.makeDirectoryAsync(directory, {
+            intermediates: true,
+          });
         }
 
         const newPath = `${directory}${filename}`;
@@ -304,8 +306,8 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
             <View style={styles.instructionsBox}>
               <Text style={styles.title}>LiDAR Scan (RoomPlan)</Text>
               <Text style={styles.subtitle}>
-                This device supports Apple RoomPlan. Start a LiDAR-native capture for
-                a quick, high-fidelity room mesh.
+                This device supports Apple RoomPlan. Start a LiDAR-native
+                capture for a quick, high-fidelity room mesh.
               </Text>
               <Pressable style={styles.startButton} onPress={openScanner}>
                 <Text style={styles.startButtonText}>Start RoomPlan Scan</Text>
@@ -323,32 +325,25 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
           {/* User-friendly message overlay */}
           {userFriendlyMessage && (
             <View style={styles.messageOverlay}>
-              <View style={[
-                styles.messageBox,
-                errorMessage ? styles.messageBoxError : styles.messageBoxInfo
-              ]}>
+              <View
+                style={[
+                  styles.messageBox,
+                  errorMessage ? styles.messageBoxError : styles.messageBoxInfo,
+                ]}
+              >
                 <Text style={styles.messageText}>{userFriendlyMessage}</Text>
               </View>
             </View>
           )}
 
           <View style={styles.roomPlanControls}>
-            <Pressable
-              style={styles.roomPlanControlButton}
-              onPress={onCancel}
-            >
+            <Pressable style={styles.roomPlanControlButton} onPress={onCancel}>
               <Text style={styles.roomPlanControlText}>Cancel</Text>
             </Pressable>
-            <Pressable
-              style={styles.roomPlanControlButton}
-              onPress={onFinish}
-            >
+            <Pressable style={styles.roomPlanControlButton} onPress={onFinish}>
               <Text style={styles.roomPlanControlText}>Finish</Text>
             </Pressable>
-            <Pressable
-              style={styles.roomPlanControlButton}
-              onPress={onNewRoom}
-            >
+            <Pressable style={styles.roomPlanControlButton} onPress={onNewRoom}>
               <Text style={styles.roomPlanControlText}>Add Room</Text>
             </Pressable>
           </View>
@@ -371,7 +366,8 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
 export default function NativeScan() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const selectedScanMode = (params.scanMode as "auto" | "lidar" | "photo") || "auto";
+  const selectedScanMode =
+    (params.scanMode as "auto" | "lidar" | "photo") || "auto";
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
 
@@ -401,7 +397,9 @@ export default function NativeScan() {
     const check = async () => {
       try {
         // Only check for RoomPlan if the feature flag is enabled
-        const deviceSupportsRoomPlan = ENABLE_ROOMPLAN ? await hasRoomPlan() : false;
+        const deviceSupportsRoomPlan = ENABLE_ROOMPLAN
+          ? await hasRoomPlan()
+          : false;
 
         // Respect user's scan mode selection
         let shouldUseRoomPlan = false;
@@ -443,13 +441,13 @@ export default function NativeScan() {
       return;
     }
 
-    if (!isRoomPlanNativeModuleAvailable()) {
-      setRoomPlanError(
-        "RoomPlan native module missing. Run a custom dev client (expo run:ios) or an EAS build with expo-roomplan; Expo Go cannot load RoomPlan."
-      );
-      setRoomPlanModule(null);
-      return;
-    }
+    // if (!isRoomPlanNativeModuleAvailable()) {
+    //   setRoomPlanError(
+    //     "RoomPlan native module missing. Run a custom dev client (expo run:ios) or an EAS build with expo-roomplan; Expo Go cannot load RoomPlan."
+    //   );
+    //   setRoomPlanModule(null);
+    //   return;
+    // }
 
     (async () => {
       try {
@@ -974,11 +972,10 @@ export default function NativeScan() {
       return (
         <View style={styles.container}>
           <View style={styles.permissionContainer}>
+            <Text style={styles.permissionText}>{roomPlanError}</Text>
             <Text style={styles.permissionText}>
-              {roomPlanError}
-            </Text>
-            <Text style={styles.permissionText}>
-              If you just added expo-roomplan, rebuild your dev client or make a new EAS build.
+              If you just added expo-roomplan, rebuild your dev client or make a
+              new EAS build.
             </Text>
           </View>
         </View>
