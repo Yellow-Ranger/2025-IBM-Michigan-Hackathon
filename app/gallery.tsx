@@ -20,7 +20,7 @@ import {
   getStorageStats,
 } from "@/utils/scanStorage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { previewUSDZ } from "@/modules/usdz-viewer/src";
+import { previewUSDZ } from "@/utils/usdzViewer";
 
 function formatTotalPoints(totalPoints: number): string {
   if (totalPoints >= 1_000_000) {

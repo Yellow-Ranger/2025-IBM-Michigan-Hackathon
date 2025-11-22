@@ -14,6 +14,8 @@
 		B550ACE3729744F68654AA65 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F8978DDD2644D3A90B1820B /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		A1B2C3D4E5F678901234ABCF /* USDZViewerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F678901234ABCD /* USDZViewerModule.m */; };
+		A1B2C3D4E5F678901234ABD0 /* USDZViewerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F678901234ABCE /* USDZViewerModule.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ProjectLyoko/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ProjectLyoko-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ProjectLyoko-Bridging-Header.h"; path = "ProjectLyoko/ProjectLyoko-Bridging-Header.h"; sourceTree = "<group>"; };
+		A1B2C3D4E5F678901234ABCD /* USDZViewerModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = USDZViewerModule.m; path = ProjectLyoko/USDZViewerModule.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F678901234ABCE /* USDZViewerModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = USDZViewerModule.swift; path = ProjectLyoko/USDZViewerModule.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +52,8 @@
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
+				A1B2C3D4E5F678901234ABCD /* USDZViewerModule.m */,
+				A1B2C3D4E5F678901234ABCE /* USDZViewerModule.swift */,
 				F11748442D0722820044C1D9 /* ProjectLyoko-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -332,6 +338,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				A1B2C3D4E5F678901234ABCF /* USDZViewerModule.m in Sources */,
+				A1B2C3D4E5F678901234ABD0 /* USDZViewerModule.swift in Sources */,
 				2E5EDDEB1612DC7485EBB190 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

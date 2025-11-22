@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, StyleSheet, View, Text, ScrollView, Image, Pr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getScanById, SavedScan, formatScanDate } from '@/utils/scanStorage';
-import { previewUSDZ } from '@/modules/usdz-viewer/src';
+import { previewUSDZ } from '@/utils/usdzViewer';
 
 function getValidThumbnailUri(thumbnail?: string | null): string | undefined {
   if (!thumbnail) return undefined;
