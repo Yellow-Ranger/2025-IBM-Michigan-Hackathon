@@ -158,7 +158,7 @@ WATSONX_PROJECT_ID=your-project-id
 ```
 app/
 ├── index.tsx              # Landing screen with feature highlights
-├── scan-webview.tsx       # Floor plan capture via camera/upload
+├── native-scan.tsx        # Floor plan capture via LiDAR RoomPlan
 ├── gallery.tsx            # Saved floor plans and layouts
 ├── preview.tsx            # 3D visualization and editing interface
 └── optimize.tsx           # AI optimization and "what-if" scenarios

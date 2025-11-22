@@ -259,7 +259,7 @@ export default function Gallery() {
       </Text>
       <Pressable
         style={styles.startScanButton}
-        onPress={() => router.push("/scan-webview")}
+        onPress={() => router.push("/native-scan")}
       >
         <Text style={styles.startScanButtonText}>Start Scanning</Text>
       </Pressable>
