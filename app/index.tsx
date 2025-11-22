@@ -102,56 +102,6 @@ export default function Home() {
             </Text>
           </View>
 
-          {lidarAvailable && (
-            <View style={styles.scanModeSelector}>
-              <Text style={styles.scanModeLabel}>Scan Mode:</Text>
-              <View style={styles.scanModeButtons}>
-                <Pressable
-                  style={[
-                    styles.scanModeButton,
-                    scanMode === "lidar" && styles.scanModeButtonActive,
-                  ]}
-                  onPress={() => setScanMode("lidar")}
-                >
-                  <MaterialCommunityIcons
-                    name="radar"
-                    size={16}
-                    color={scanMode === "lidar" ? "#f6fbff" : PRIMARY}
-                  />
-                  <Text
-                    style={[
-                      styles.scanModeButtonText,
-                      scanMode === "lidar" && styles.scanModeButtonTextActive,
-                    ]}
-                  >
-                    LiDAR
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.scanModeButton,
-                    scanMode === "photo" && styles.scanModeButtonActive,
-                  ]}
-                  onPress={() => setScanMode("photo")}
-                >
-                  <MaterialCommunityIcons
-                    name="camera"
-                    size={16}
-                    color={scanMode === "photo" ? "#f6fbff" : PRIMARY}
-                  />
-                  <Text
-                    style={[
-                      styles.scanModeButtonText,
-                      scanMode === "photo" && styles.scanModeButtonTextActive,
-                    ]}
-                  >
-                    Photo
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-
           <Pressable
             style={({ pressed }) => [
               styles.cameraButton,
@@ -164,6 +114,55 @@ export default function Home() {
               })
             }
           >
+            {lidarAvailable && (
+              <View style={styles.scanModeSelector}>
+                <Text style={styles.scanModeLabel}>Scan Mode:</Text>
+                <View style={styles.scanModeButtons}>
+                  <Pressable
+                    style={[
+                      styles.scanModeButton,
+                      scanMode === "lidar" && styles.scanModeButtonActive,
+                    ]}
+                    onPress={() => setScanMode("lidar")}
+                  >
+                    <MaterialCommunityIcons
+                      name="radar"
+                      size={16}
+                      color={scanMode === "lidar" ? "#f6fbff" : PRIMARY}
+                    />
+                    <Text
+                      style={[
+                        styles.scanModeButtonText,
+                        scanMode === "lidar" && styles.scanModeButtonTextActive,
+                      ]}
+                    >
+                      LiDAR
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.scanModeButton,
+                      scanMode === "photo" && styles.scanModeButtonActive,
+                    ]}
+                    onPress={() => setScanMode("photo")}
+                  >
+                    <MaterialCommunityIcons
+                      name="camera"
+                      size={16}
+                      color={scanMode === "photo" ? "#f6fbff" : PRIMARY}
+                    />
+                    <Text
+                      style={[
+                        styles.scanModeButtonText,
+                        scanMode === "photo" && styles.scanModeButtonTextActive,
+                      ]}
+                    >
+                      Photo
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
             <MaterialCommunityIcons name="camera" size={56} color="#f6fbff" />
             <Text style={styles.cameraHint}>Tap to start</Text>
           </Pressable>
@@ -286,6 +285,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   scanModeSelector: {
+    position: "absolute",
+    top: -100,
+    left: 0,
+    right: 0,
     alignItems: "center",
     gap: 12,
   },
