@@ -202,8 +202,36 @@ export function convertTo2DFloorplan(room: CapturedRoom): Floorplan2D {
   let minZ = Infinity,
     maxZ = -Infinity;
 
+  console.log("[RoomPlanParser] convertTo2DFloorplan input counts:", {
+    walls: room.walls?.length || 0,
+    surfaces: room.surfaces?.length || 0,
+    doors: room.doors?.length || 0,
+    windows: room.windows?.length || 0,
+    objects: room.objects?.length || 0,
+  });
+
+  // Detect "simplified" RoomPlan JSON that omits wall positions
+  const hasWalls = room.walls && room.walls.length > 0;
+  const hasAnyWallPosition =
+    hasWalls && room.walls!.some((w) => !!w?.transform?.position);
+
+  if (hasWalls && !hasAnyWallPosition) {
+    const errorMessage =
+      "RoomPlan simplified JSON detected (walls have no positions). Please export the Full RoomPlan JSON to generate a floorplan.";
+    console.error("[RoomPlanParser]", errorMessage, {
+      wallCount: room.walls.length,
+    });
+    throw new Error(errorMessage);
+  }
+
+  // Prefer explicit walls array; if empty, fall back to surfaces categorized as walls
+  const wallSources: { transform?: Transform; dimensions?: Size3D }[] =
+    room.walls && room.walls.length > 0
+      ? room.walls
+      : room.surfaces?.filter((s) => s.category === "wall") || [];
+
   // Process walls - RoomPlan walls are centered rectangles
-  room.walls?.forEach((wall, index) => {
+  wallSources.forEach((wall, index) => {
     // Defensive checks in case the RoomPlan JSON has partial/missing data
     if (!wall || !wall.transform || !wall.transform.position || !wall.dimensions) {
       console.warn("[RoomPlanParser] Skipping wall with missing transform/position/dimensions", {
