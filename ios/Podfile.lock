@@ -247,6 +247,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoRoomplan (1.2.1):
+    - ExpoModulesCore
   - ExpoSensors (15.0.7):
     - ExpoModulesCore
   - ExpoSharing (14.0.7):
@@ -2243,6 +2245,7 @@ DEPENDENCIES:
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoRoomplan (from `../node_modules/expo-roomplan/ios`)
   - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSpeech (from `../node_modules/expo-speech/ios`)
@@ -2365,6 +2368,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-linking/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoRoomplan:
+    :path: "../node_modules/expo-roomplan/ios"
   ExpoSensors:
     :path: "../node_modules/expo-sensors/ios"
   ExpoSharing:
@@ -2541,6 +2546,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: f9e7182e5253d53b2de4134b69d70bbfc2d50588
   ExpoLinking: 50a65cd7beb6051ffc82f84ffb33961dd5e55a5b
   ExpoModulesCore: e37f2bfc6f5b553989e1a67e15b7c5c8bbcac0cc
+  ExpoRoomplan: 4b989df8af4b3a05cb3c2e66997388b1213a067d
   ExpoSensors: 4e9582fe20b9829a3a1d276e07ecd7916ee1ca84
   ExpoSharing: 6f52a070c3083c11717cf2236ae8fd6ac45bf028
   ExpoSpeech: 0b515130c96898789e72e8d0aac82b7e9123e88b

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View, Text, ScrollView, Image } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View, Text, ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getScanById, SavedScan, formatScanDate } from '@/utils/scanStorage';
+import { previewUSDZ } from '@/modules/usdz-viewer/src';
 
 function getValidThumbnailUri(thumbnail?: string | null): string | undefined {
   if (!thumbnail) return undefined;
@@ -58,7 +59,8 @@ export default function PreviewScreen() {
           return;
         }
 
-        if (!savedScan.backendScanId) {
+        // Check if it's a RoomPlan scan or a regular photo scan
+        if (!savedScan.roomPlan && !savedScan.backendScanId) {
           setError('This scan does not have a 3D model available.');
           setLoading(false);
           return;
@@ -109,6 +111,20 @@ export default function PreviewScreen() {
   }
 
   const thumbnailUri = scan ? getValidThumbnailUri(scan.thumbnail) : undefined;
+
+  const handleView3D = async () => {
+    if (!scan.roomPlan?.usdzUrl) {
+      Alert.alert('Error', 'No 3D model available for this scan');
+      return;
+    }
+
+    try {
+      await previewUSDZ(scan.roomPlan.usdzUrl);
+    } catch (err) {
+      console.error('Failed to preview USDZ:', err);
+      Alert.alert('Error', 'Failed to open 3D preview');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -188,6 +204,12 @@ export default function PreviewScreen() {
             {scan.data.colors ? ' with color information' : ''}.
           </Text>
         </View>
+
+        {scan.roomPlan?.usdzUrl && (
+          <Pressable style={styles.view3DButton} onPress={handleView3D}>
+            <Text style={styles.view3DButtonText}>View 3D Model</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -291,5 +313,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
     lineHeight: 20,
+  },
+  view3DButton: {
+    backgroundColor: '#00d4ff',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+    alignItems: 'center',
+    shadowColor: '#00d4ff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  view3DButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });
