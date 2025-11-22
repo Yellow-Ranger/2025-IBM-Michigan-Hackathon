@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
   canvasTitle: {
     color: "#f6fbff",
@@ -350,7 +351,9 @@ const styles = StyleSheet.create({
   },
   canvasCaption: {
     color: "#a7b7c6",
-    fontSize: 12,
+    fontSize: 11,
+    flexShrink: 1,
+    textAlign: "right",
   },
   chipRow: {
     flexDirection: "row",

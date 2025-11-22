@@ -12,7 +12,7 @@ import {
   NativeModules,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Asset } from "expo-asset";
 import { useNativeOrientation } from "@/hooks/useNativeOrientation";
 import { useCaptureStore } from "@/utils/captureStore";
@@ -82,21 +82,83 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
   const [showScanner, setShowScanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Ready to scan with RoomPlan");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [userFriendlyMessage, setUserFriendlyMessage] = useState<string | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | undefined>();
   const hasSavedRef = useRef(false);
   const cameraRef = useRef<any>(null);
+  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to convert technical messages to user-friendly ones
+  const formatUserFriendlyMessage = (status: string, error?: string): string | null => {
+    // Clear previous timeout
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+
+    // Handle error messages
+    if (error) {
+      const lowerError = error.toLowerCase();
+      if (lowerError.includes("light") || lowerError.includes("dark")) {
+        return "💡 More light required - Move to a brighter area";
+      }
+      if (lowerError.includes("texture") || lowerError.includes("feature")) {
+        return "🎨 Not enough detail - Point at textured surfaces";
+      }
+      if (lowerError.includes("motion") || lowerError.includes("fast")) {
+        return "🐌 Moving too fast - Slow down your movements";
+      }
+      if (lowerError.includes("distance")) {
+        return "📏 Too close or too far - Adjust your distance";
+      }
+      // Generic error message
+      return `⚠️ ${error}`;
+    }
+
+    // Handle status messages
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes("scanning") || lowerStatus === "running") {
+      return "📱 Scanning in progress - Slowly pan around the room";
+    }
+    if (lowerStatus.includes("initializing")) {
+      return "🔄 Getting ready to scan...";
+    }
+    if (lowerStatus.includes("done") || lowerStatus.includes("complete")) {
+      return "✅ Scan complete!";
+    }
+    if (lowerStatus.includes("preview")) {
+      return "👀 Review your scan";
+    }
+
+    return null;
+  };
 
   const handleStatus = (e: {
     nativeEvent: { status: any; errorMessage?: string };
   }) => {
-    const { status: nextStatus, errorMessage } = e.nativeEvent;
+    const { status: nextStatus, errorMessage: error } = e.nativeEvent;
     console.log(
       "[RoomPlan] status:",
       nextStatus,
-      errorMessage ? `- ${errorMessage}` : ""
+      error ? `- ${error}` : ""
     );
+
     if (nextStatus) {
       setStatus(nextStatus);
+    }
+
+    // Update error message
+    setErrorMessage(error || null);
+
+    // Generate user-friendly message
+    const friendlyMsg = formatUserFriendlyMessage(nextStatus, error);
+    setUserFriendlyMessage(friendlyMsg);
+
+    // Auto-hide non-error messages after 5 seconds
+    if (friendlyMsg && !error) {
+      messageTimeoutRef.current = setTimeout(() => {
+        setUserFriendlyMessage(null);
+      }, 5000);
     }
   };
 
@@ -130,6 +192,15 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
       setShowScanner(false);
     }
   }, [showScanner, state.isRunning, saving]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSave = async (usdzUrl?: string, jsonUrl?: string) => {
     setSaving(true);
@@ -248,6 +319,19 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
       {showScanner && (
         <View style={styles.overlayFull}>
           <RoomPlanView style={StyleSheet.absoluteFill} {...viewProps} />
+
+          {/* User-friendly message overlay */}
+          {userFriendlyMessage && (
+            <View style={styles.messageOverlay}>
+              <View style={[
+                styles.messageBox,
+                errorMessage ? styles.messageBoxError : styles.messageBoxInfo
+              ]}>
+                <Text style={styles.messageText}>{userFriendlyMessage}</Text>
+              </View>
+            </View>
+          )}
+
           <View style={styles.roomPlanControls}>
             <Pressable
               style={styles.roomPlanControlButton}
@@ -286,6 +370,8 @@ function RoomPlanScanner({ roomPlanModule }: RoomPlanScannerProps) {
 
 export default function NativeScan() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const selectedScanMode = (params.scanMode as "auto" | "lidar" | "photo") || "auto";
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
 
@@ -315,9 +401,23 @@ export default function NativeScan() {
     const check = async () => {
       try {
         // Only check for RoomPlan if the feature flag is enabled
-        const supported = ENABLE_ROOMPLAN ? await hasRoomPlan() : false;
+        const deviceSupportsRoomPlan = ENABLE_ROOMPLAN ? await hasRoomPlan() : false;
+
+        // Respect user's scan mode selection
+        let shouldUseRoomPlan = false;
+        if (selectedScanMode === "auto") {
+          // Auto mode: use RoomPlan if available
+          shouldUseRoomPlan = deviceSupportsRoomPlan;
+        } else if (selectedScanMode === "lidar") {
+          // Force LiDAR mode: use RoomPlan if available
+          shouldUseRoomPlan = deviceSupportsRoomPlan;
+        } else if (selectedScanMode === "photo") {
+          // Force photo mode: never use RoomPlan
+          shouldUseRoomPlan = false;
+        }
+
         if (mounted) {
-          setRoomPlanAvailable(supported);
+          setRoomPlanAvailable(shouldUseRoomPlan);
         }
       } catch (err) {
         console.warn("RoomPlan capability check failed", err);
@@ -332,7 +432,7 @@ export default function NativeScan() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [selectedScanMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1406,5 +1506,41 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
+  },
+  messageOverlay: {
+    position: "absolute",
+    top: 120,
+    left: 16,
+    right: 16,
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  messageBox: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    maxWidth: "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  messageBoxInfo: {
+    backgroundColor: "rgba(0, 212, 255, 0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  messageBoxError: {
+    backgroundColor: "rgba(251, 191, 36, 0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  messageText: {
+    color: "#000",
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
