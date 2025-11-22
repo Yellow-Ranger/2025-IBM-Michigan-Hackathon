@@ -109,27 +109,6 @@ export default function Home() {
                 <Pressable
                   style={[
                     styles.scanModeButton,
-                    scanMode === "auto" && styles.scanModeButtonActive,
-                  ]}
-                  onPress={() => setScanMode("auto")}
-                >
-                  <MaterialCommunityIcons
-                    name="auto-fix"
-                    size={16}
-                    color={scanMode === "auto" ? "#f6fbff" : PRIMARY}
-                  />
-                  <Text
-                    style={[
-                      styles.scanModeButtonText,
-                      scanMode === "auto" && styles.scanModeButtonTextActive,
-                    ]}
-                  >
-                    Auto
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.scanModeButton,
                     scanMode === "lidar" && styles.scanModeButtonActive,
                   ]}
                   onPress={() => setScanMode("lidar")}
